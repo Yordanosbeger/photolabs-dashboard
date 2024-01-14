@@ -30,9 +30,11 @@ const data = [
 
 class Dashboard extends Component {
   state = {
-    loading: false,
-    focused: null
-  };
+    loading: true,
+    focused: null,
+    photos: [],
+    topics: []
+   };
   constructor(props) {
     super(props);
 
@@ -42,6 +44,32 @@ class Dashboard extends Component {
     this.setState(previousState => ({
       focused: previousState.focused !== null ? null : id
     }));
+  }
+  componentDidMount() {
+    const focused = JSON.parse(localStorage.getItem("focused"));
+
+    if (focused) {
+      this.setState({ focused });
+     
+    }
+    const urlsPromise = [
+      "/api/photos",
+      "/api/topics",
+    ].map(url => fetch(url).then(response => response.json()));
+    Promise.all(urlsPromise)
+.then(([photos, topics]) => {
+  this.setState({
+    loading: false,
+    photos: photos,
+    topics: topics
+  });
+});
+  }
+
+  componentDidUpdate(previousProps, previousState) {
+    if (previousState.focused !== this.state.focused) {
+      localStorage.setItem("focused", JSON.stringify(this.state.focused));
+    }
   }
   render() {
     const dashboardClasses = classnames("dashboard", {
