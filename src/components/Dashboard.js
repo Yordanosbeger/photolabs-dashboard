@@ -1,30 +1,36 @@
 import React, { Component } from "react";
 import classnames from "classnames";
-import Panel from "./Panel"; 
-import Loading from "./Loading"; 
-
+import Panel from "./Panel";
+import Loading from "./Loading";
+import {
+  getTotalPhotos,
+  getTotalTopics,
+  getUserWithMostUploads,
+  getUserWithLeastUploads
+} from "helpers/selectors";
 
 const data = [
   {
     id: 1,
     label: "Total Photos",
-    value: 10
+    getValue: getTotalPhotos
   },
   {
     id: 2,
     label: "Total Topics",
-    value: 4
+    getValue: getTotalTopics
   },
   {
     id: 3,
     label: "User with the most uploads",
-    value: "Allison Saeng"
+    getValue: getUserWithMostUploads
   },
   {
     id: 4,
     label: "User with the least uploads",
-    value: "Lukas Souza" // Remove the extra double-quote here
+    getValue: getUserWithLeastUploads
   }
+
 ];
 
 
@@ -34,7 +40,7 @@ class Dashboard extends Component {
     focused: null,
     photos: [],
     topics: []
-   };
+  };
   constructor(props) {
     super(props);
 
@@ -50,20 +56,20 @@ class Dashboard extends Component {
 
     if (focused) {
       this.setState({ focused });
-     
+
     }
     const urlsPromise = [
       "/api/photos",
       "/api/topics",
     ].map(url => fetch(url).then(response => response.json()));
     Promise.all(urlsPromise)
-.then(([photos, topics]) => {
-  this.setState({
-    loading: false,
-    photos: photos,
-    topics: topics
-  });
-});
+      .then(([photos, topics]) => {
+        this.setState({
+          loading: false,
+          photos: photos,
+          topics: topics
+        });
+      });
   }
 
   componentDidUpdate(previousProps, previousState) {
@@ -73,19 +79,19 @@ class Dashboard extends Component {
   }
   render() {
     const dashboardClasses = classnames("dashboard", {
-      "dashboard--focused": this.state.focused});
+      "dashboard--focused": this.state.focused
+    });
 
     if (this.state.loading) {
       return <Loading />;
     }
 
-    const panels=(this.state.focused ? data.filter(panel => this.state.focused === panel.id) : data).map(panel => (
+    const panels = (this.state.focused ? data.filter(panel => this.state.focused === panel.id) : data).map(panel => (
       <Panel
         key={panel.id}
-        id={panel.id}
         label={panel.label}
-        value={panel.value}
-        onSelect={event => this.selectPanel(panel.id)}
+        value={panel.getValue(this.state)}
+        onSelect={() => this.selectPanel(panel.id)}
       />
     ));
 
